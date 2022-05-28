@@ -1,29 +1,30 @@
-/*
-* Getting DOM Elements
-*/
+/**
+ * Getting DOM Elements
+ */
 const productsSection = document.getElementById('items');
 
 
-/*
-* API URL
-*/
+/**
+ * API URL
+ */
 const api = 'http://localhost:3000/api/products';
 
 
-/*
-* Event Listeners
-*/
+/**Calls functions when site loads
+ * Displays all elements in the front page
+ */
 window.addEventListener('load', () => {
     displayAll();
 });
 
 
-/*
-* Functions
-*/
-
-//AJAX request that returns a promise with the JSON file.
-//Works for all requests by changing arguments.
+/**
+ * AJAX request that returns a promise with the JSON file.
+ * Works for all requests by changing arguments.
+ * @argument url 
+ * @argument data
+ * @returns response data
+ */
 function makeRequest(verb, url, data) {
     if (verb === 'POST' && !data) {
         reject({error: 'no data to POST'});
@@ -33,8 +34,10 @@ function makeRequest(verb, url, data) {
         request.open(verb, url);
         request.onreadystatechange = () => {
             if (request.readyState === 4){
-                resolve(JSON.parse(request.response));
-            }
+                if (request.status === 200) {
+                    resolve(JSON.parse(request.response));
+                }
+            } 
         }
         if (verb === 'POST') {
             request.setRequestHeader('Content-Type', 'application/json');
@@ -45,8 +48,10 @@ function makeRequest(verb, url, data) {
     });
 }
 
-//Retrieves all elements from the API
-//Dysplays them in the homepage
+/**
+ * Retrieves all elements from the API
+ * Dysplays them in the homepage
+ */
 async function displayAll() {
     
     //retrieve API response data file
@@ -56,7 +61,7 @@ async function displayAll() {
     //identify number of items in retrieved data
     let numberOfItems = requestResponse.length;
 
-    //create articles in DOM and populate content using API data
+    //create articles in DOM and populates content using API data
     for (let i = 0; i < numberOfItems; i++) {
         
         //creating elements
@@ -92,7 +97,8 @@ async function displayAll() {
 
 
 
-
+// let id = new URLSearchParams(window.location.search)
+// id.get('id')
 
 
 
