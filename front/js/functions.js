@@ -1,4 +1,4 @@
-import { api, homeProductsSection } from "./variables.js";
+import { api, homeProductsSection, quantityInput } from "./variables.js";
 import { item } from './classes.js';
  
 
@@ -81,7 +81,7 @@ import { item } from './classes.js';
         //Adding content to elements
         card.href = './product.html?id=' + requestResponse[i]._id;
         newImage.src = requestResponse[i].imageUrl;
-        newTitle.textContent = requestResponse[i].name;;
+        newTitle.textContent = requestResponse[i].name;
         newParagraph.textContent = requestResponse[i].description;
     }
 }
@@ -128,7 +128,6 @@ import { item } from './classes.js';
 /**
  * Adds currently displayed item to the cart
  * Uses local storage
- * increases cart number?
  */
 export function addToCart(){
     
@@ -171,9 +170,6 @@ export function addToCart(){
                 }
 
             }
-
-            console.log(i);
-            console.log(cartData.length);
 
             //if item being added has the SAME id and color as any of the items already in cart
             if (cartData[i].color == selectedColor.value && cartData[i].id == productId) {
@@ -229,3 +225,129 @@ export function addToCart(){
     }
 
 }
+
+
+/**
+ * Displays all items added to the cart in the when cart page loads
+ * Steps:
+ * pulls item's ID, quantity and color from local storage
+ * requests each item's remaining data from server
+ * prints data to the DOM
+ */
+export async function displayCart(){
+    
+    //Accessing local Storage
+    let cartData = JSON.parse(localStorage.getItem('cart items'));
+
+    //Accessing DOM section where items are going to be displayed
+    let section = document.getElementById('cart__items');
+    
+    //Access each item in the cart one at a time
+    for ( let i = 0; i < cartData.length; i++) {
+
+        //Request item's info from server
+        let requestResponse = await makeRequest ("GET", api + "/" + cartData[i].id); 
+
+        //Creating necessary DOM
+        let article = document.createElement('article');
+        let article__imageContainer = document.createElement('div');
+        let article__imageContainer__image = document.createElement('img');
+        let article__content = document.createElement('div');
+        let article__content__descriptionContainer = document.createElement('div');
+        let article__content__descriptionContainer__title = document.createElement('h2');
+        let article__content__descriptionContainer__color = document.createElement('p');
+        let article__content__descriptionContainer__price = document.createElement('p');
+        let article__content__settingsContainer = document.createElement('div');
+        let article__content__settingsContainer__quantityContainer = document.createElement('div');
+        let article__content__settingsContainer__quantityContainer__text = document.createElement('p');
+        let article__content__settingsContainer__quantityContainer__input = document.createElement('input');
+        let article__content__settingsContainer__deleteButtonContainer = document.createElement('div');
+        let article__content__settingsContainer__deleteButtonContainer__button = document.createElement('p');
+
+        //Adding styles and attributes to newly created DOM elements
+        article.classList.add('cart__item');
+        article.setAttribute("data-id", cartData[i].id);
+        article.setAttribute("data-color", cartData[i].color);
+        article__imageContainer.classList.add('cart__item__img');
+        article__imageContainer__image.setAttribute("src", requestResponse.imageUrl);
+        article__imageContainer__image.setAttribute("alt", requestResponse.altTxt);
+        article__content.classList.add("cart__item__content");
+        article__content__descriptionContainer.classList.add("cart__item__content__description"),
+        article__content__descriptionContainer__title.innerText = requestResponse.name;
+        article__content__descriptionContainer__color.innerText = cartData[i].color;
+        article__content__descriptionContainer__price.innerText = "$" + requestResponse.price;
+        article__content__settingsContainer.classList.add("cart__item__content__settings");
+        article__content__settingsContainer__quantityContainer.classList.add("cart__item__content__settings__quantity");
+        article__content__settingsContainer__quantityContainer__text.innerHTML = "Qté : ";
+        article__content__settingsContainer__quantityContainer__input.classList.add("itemQuantity");
+        article__content__settingsContainer__quantityContainer__input.setAttribute("type", "number");
+        article__content__settingsContainer__quantityContainer__input.setAttribute("name", "itemQuantity");
+        article__content__settingsContainer__quantityContainer__input.setAttribute("min", "1");
+        article__content__settingsContainer__quantityContainer__input.setAttribute("max", "100");
+        article__content__settingsContainer__quantityContainer__input.setAttribute("value", cartData[i].quantity);
+        article__content__settingsContainer__deleteButtonContainer.classList.add("cart__item__content__settings__delete");
+        article__content__settingsContainer__deleteButtonContainer__button.classList.add("deleteItem");
+        article__content__settingsContainer__deleteButtonContainer__button.innerHTML = "Delete";        
+
+        //Appending DOM Elements
+        section.appendChild(article);
+        article.appendChild(article__imageContainer);
+        article.appendChild(article__content);
+        article__imageContainer.appendChild(article__imageContainer__image);
+        article__content.appendChild(article__content__descriptionContainer);
+        article__content.appendChild(article__content__settingsContainer);
+        article__content__descriptionContainer.appendChild(article__content__descriptionContainer__title);
+        article__content__descriptionContainer.appendChild(article__content__descriptionContainer__color);
+        article__content__descriptionContainer.appendChild(article__content__descriptionContainer__price);
+        article__content__settingsContainer.appendChild(article__content__settingsContainer__quantityContainer);
+        article__content__settingsContainer.appendChild(article__content__settingsContainer__deleteButtonContainer);
+        article__content__settingsContainer__quantityContainer.appendChild(article__content__settingsContainer__quantityContainer__text);
+        article__content__settingsContainer__quantityContainer.appendChild(article__content__settingsContainer__quantityContainer__input);
+        article__content__settingsContainer__deleteButtonContainer.appendChild(article__content__settingsContainer__deleteButtonContainer__button);
+
+    }
+
+    //adding event listeners to quantity input field and delete button
+    for (let i = 0; i < quantityInput.length; i++) {
+
+        quantityInput[i].addEventListener('change', ($event) => {
+        
+            changeItemCount($event);
+        
+        });
+        
+    }
+
+}
+
+
+/**
+ * Reacts to changes in the quantity input fields by updating the quantity of the desired item in the local storage
+ * @param {*} currentEvent This parameter will always be the $event object from the event-listener that called this function.
+ */
+export function changeItemCount(currentEvent) {
+
+    //Reatreaving cart items' local storage data
+    let cartData = JSON.parse(localStorage.getItem('cart items'));
+    
+    //retreaving input element's article
+    let currentArticle = currentEvent.target.parentElement.parentElement.parentElement.parentElement;
+
+    //Checking if the current article's dataset values match the id and color of any of the items in the cart 
+    for (let i = 0; i < cartData.length; i++) {
+
+        //If there is a match change the quantity of the local storage object to match user input
+        if (currentArticle.dataset.id == cartData[i].id && currentArticle.dataset.color == cartData[i].color) {
+        
+            cartData[i].quantity = currentEvent.target.value;
+            localStorage.setItem('cart items', JSON.stringify(cartData));
+            break;
+        }
+
+    }
+
+
+
+
+}
+

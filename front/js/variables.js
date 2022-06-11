@@ -6,3 +6,5 @@ export const homeProductsSection = document.getElementById('items');
 
 //Getting product page DOM elements
 export const addToCartButton = document.getElementById('addToCart');
+export const orderButton = document.getElementById('order');
+export const quantityInput = document.getElementsByClassName('itemQuantity');
