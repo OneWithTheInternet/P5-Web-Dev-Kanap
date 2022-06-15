@@ -8,3 +8,4 @@ export const homeProductsSection = document.getElementById('items');
 export const addToCartButton = document.getElementById('addToCart');
 export const orderButton = document.getElementById('order');
 export const quantityInput = document.getElementsByClassName('itemQuantity');
+export const deleteButton = document.getElementsByClassName('deleteItem');

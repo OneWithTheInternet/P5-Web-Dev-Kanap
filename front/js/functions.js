@@ -1,4 +1,4 @@
-import { api, homeProductsSection, quantityInput } from "./variables.js";
+import { api, homeProductsSection, quantityInput, deleteButton } from "./variables.js";
 import { item } from './classes.js';
  
 
@@ -236,87 +236,103 @@ export function addToCart(){
  */
 export async function displayCart(){
     
-    //Accessing local Storage
-    let cartData = JSON.parse(localStorage.getItem('cart items'));
+    //if there is something in the cart and that something is not eampty
+    if (localStorage.getItem("cart items") !== null && localStorage.getItem("cart items") !== '[]') {
 
-    //Accessing DOM section where items are going to be displayed
-    let section = document.getElementById('cart__items');
+        //Accessing local Storage
+        let cartData = JSON.parse(localStorage.getItem('cart items'));
+
+        //Accessing DOM section where items are going to be displayed
+        let section = document.getElementById('cart__items');
+        
+        //Access each item in the cart one at a time
+        for ( let i = 0; i < cartData.length; i++) {
+
+            //Request item's info from server
+            let requestResponse = await makeRequest ("GET", api + "/" + cartData[i].id); 
+
+            //Creating necessary DOM
+            let article = document.createElement('article');
+            let article__imageContainer = document.createElement('div');
+            let article__imageContainer__image = document.createElement('img');
+            let article__content = document.createElement('div');
+            let article__content__descriptionContainer = document.createElement('div');
+            let article__content__descriptionContainer__title = document.createElement('h2');
+            let article__content__descriptionContainer__color = document.createElement('p');
+            let article__content__descriptionContainer__price = document.createElement('p');
+            let article__content__settingsContainer = document.createElement('div');
+            let article__content__settingsContainer__quantityContainer = document.createElement('div');
+            let article__content__settingsContainer__quantityContainer__text = document.createElement('p');
+            let article__content__settingsContainer__quantityContainer__input = document.createElement('input');
+            let article__content__settingsContainer__deleteButtonContainer = document.createElement('div');
+            let article__content__settingsContainer__deleteButtonContainer__button = document.createElement('p');
+
+            //Adding styles and attributes to newly created DOM elements
+            article.classList.add('cart__item');
+            article.setAttribute("data-id", cartData[i].id);
+            article.setAttribute("data-color", cartData[i].color);
+            article__imageContainer.classList.add('cart__item__img');
+            article__imageContainer__image.setAttribute("src", requestResponse.imageUrl);
+            article__imageContainer__image.setAttribute("alt", requestResponse.altTxt);
+            article__content.classList.add("cart__item__content");
+            article__content__descriptionContainer.classList.add("cart__item__content__description"),
+            article__content__descriptionContainer__title.innerText = requestResponse.name;
+            article__content__descriptionContainer__color.innerText = cartData[i].color;
+            article__content__descriptionContainer__price.innerText = "$" + requestResponse.price;
+            article__content__settingsContainer.classList.add("cart__item__content__settings");
+            article__content__settingsContainer__quantityContainer.classList.add("cart__item__content__settings__quantity");
+            article__content__settingsContainer__quantityContainer__text.innerHTML = "Qté : ";
+            article__content__settingsContainer__quantityContainer__input.classList.add("itemQuantity");
+            article__content__settingsContainer__quantityContainer__input.setAttribute("type", "number");
+            article__content__settingsContainer__quantityContainer__input.setAttribute("name", "itemQuantity");
+            article__content__settingsContainer__quantityContainer__input.setAttribute("min", "1");
+            article__content__settingsContainer__quantityContainer__input.setAttribute("max", "100");
+            article__content__settingsContainer__quantityContainer__input.setAttribute("value", cartData[i].quantity);
+            article__content__settingsContainer__deleteButtonContainer.classList.add("cart__item__content__settings__delete");
+            article__content__settingsContainer__deleteButtonContainer__button.classList.add("deleteItem");
+            article__content__settingsContainer__deleteButtonContainer__button.innerHTML = "Delete";        
+
+            //Appending DOM Elements
+            section.appendChild(article);
+            article.appendChild(article__imageContainer);
+            article.appendChild(article__content);
+            article__imageContainer.appendChild(article__imageContainer__image);
+            article__content.appendChild(article__content__descriptionContainer);
+            article__content.appendChild(article__content__settingsContainer);
+            article__content__descriptionContainer.appendChild(article__content__descriptionContainer__title);
+            article__content__descriptionContainer.appendChild(article__content__descriptionContainer__color);
+            article__content__descriptionContainer.appendChild(article__content__descriptionContainer__price);
+            article__content__settingsContainer.appendChild(article__content__settingsContainer__quantityContainer);
+            article__content__settingsContainer.appendChild(article__content__settingsContainer__deleteButtonContainer);
+            article__content__settingsContainer__quantityContainer.appendChild(article__content__settingsContainer__quantityContainer__text);
+            article__content__settingsContainer__quantityContainer.appendChild(article__content__settingsContainer__quantityContainer__input);
+            article__content__settingsContainer__deleteButtonContainer.appendChild(article__content__settingsContainer__deleteButtonContainer__button);
+
+        }
+
+        //adding event listeners to quantity input field and delete button
+        for (let i = 0; i < quantityInput.length; i++) {
+
+            quantityInput[i].addEventListener('change', ($event) => {
+            
+                changeItemCount($event);
+            
+            });
+
+            deleteButton[i].addEventListener('click', ($event) => {
+            
+                deleteCartItem($event);
+            
+            });
+            
+        }
+
+    } else {
+
+        alert("You have not added anything to the cart yet");
+
+    }
     
-    //Access each item in the cart one at a time
-    for ( let i = 0; i < cartData.length; i++) {
-
-        //Request item's info from server
-        let requestResponse = await makeRequest ("GET", api + "/" + cartData[i].id); 
-
-        //Creating necessary DOM
-        let article = document.createElement('article');
-        let article__imageContainer = document.createElement('div');
-        let article__imageContainer__image = document.createElement('img');
-        let article__content = document.createElement('div');
-        let article__content__descriptionContainer = document.createElement('div');
-        let article__content__descriptionContainer__title = document.createElement('h2');
-        let article__content__descriptionContainer__color = document.createElement('p');
-        let article__content__descriptionContainer__price = document.createElement('p');
-        let article__content__settingsContainer = document.createElement('div');
-        let article__content__settingsContainer__quantityContainer = document.createElement('div');
-        let article__content__settingsContainer__quantityContainer__text = document.createElement('p');
-        let article__content__settingsContainer__quantityContainer__input = document.createElement('input');
-        let article__content__settingsContainer__deleteButtonContainer = document.createElement('div');
-        let article__content__settingsContainer__deleteButtonContainer__button = document.createElement('p');
-
-        //Adding styles and attributes to newly created DOM elements
-        article.classList.add('cart__item');
-        article.setAttribute("data-id", cartData[i].id);
-        article.setAttribute("data-color", cartData[i].color);
-        article__imageContainer.classList.add('cart__item__img');
-        article__imageContainer__image.setAttribute("src", requestResponse.imageUrl);
-        article__imageContainer__image.setAttribute("alt", requestResponse.altTxt);
-        article__content.classList.add("cart__item__content");
-        article__content__descriptionContainer.classList.add("cart__item__content__description"),
-        article__content__descriptionContainer__title.innerText = requestResponse.name;
-        article__content__descriptionContainer__color.innerText = cartData[i].color;
-        article__content__descriptionContainer__price.innerText = "$" + requestResponse.price;
-        article__content__settingsContainer.classList.add("cart__item__content__settings");
-        article__content__settingsContainer__quantityContainer.classList.add("cart__item__content__settings__quantity");
-        article__content__settingsContainer__quantityContainer__text.innerHTML = "Qté : ";
-        article__content__settingsContainer__quantityContainer__input.classList.add("itemQuantity");
-        article__content__settingsContainer__quantityContainer__input.setAttribute("type", "number");
-        article__content__settingsContainer__quantityContainer__input.setAttribute("name", "itemQuantity");
-        article__content__settingsContainer__quantityContainer__input.setAttribute("min", "1");
-        article__content__settingsContainer__quantityContainer__input.setAttribute("max", "100");
-        article__content__settingsContainer__quantityContainer__input.setAttribute("value", cartData[i].quantity);
-        article__content__settingsContainer__deleteButtonContainer.classList.add("cart__item__content__settings__delete");
-        article__content__settingsContainer__deleteButtonContainer__button.classList.add("deleteItem");
-        article__content__settingsContainer__deleteButtonContainer__button.innerHTML = "Delete";        
-
-        //Appending DOM Elements
-        section.appendChild(article);
-        article.appendChild(article__imageContainer);
-        article.appendChild(article__content);
-        article__imageContainer.appendChild(article__imageContainer__image);
-        article__content.appendChild(article__content__descriptionContainer);
-        article__content.appendChild(article__content__settingsContainer);
-        article__content__descriptionContainer.appendChild(article__content__descriptionContainer__title);
-        article__content__descriptionContainer.appendChild(article__content__descriptionContainer__color);
-        article__content__descriptionContainer.appendChild(article__content__descriptionContainer__price);
-        article__content__settingsContainer.appendChild(article__content__settingsContainer__quantityContainer);
-        article__content__settingsContainer.appendChild(article__content__settingsContainer__deleteButtonContainer);
-        article__content__settingsContainer__quantityContainer.appendChild(article__content__settingsContainer__quantityContainer__text);
-        article__content__settingsContainer__quantityContainer.appendChild(article__content__settingsContainer__quantityContainer__input);
-        article__content__settingsContainer__deleteButtonContainer.appendChild(article__content__settingsContainer__deleteButtonContainer__button);
-
-    }
-
-    //adding event listeners to quantity input field and delete button
-    for (let i = 0; i < quantityInput.length; i++) {
-
-        quantityInput[i].addEventListener('change', ($event) => {
-        
-            changeItemCount($event);
-        
-        });
-        
-    }
 
 }
 
@@ -330,8 +346,8 @@ export function changeItemCount(currentEvent) {
     //Reatreaving cart items' local storage data
     let cartData = JSON.parse(localStorage.getItem('cart items'));
     
-    //retreaving input element's article
-    let currentArticle = currentEvent.target.parentElement.parentElement.parentElement.parentElement;
+    //retreaving input element's closest article element
+    let currentArticle = currentEvent.target.closest('article');
 
     //Checking if the current article's dataset values match the id and color of any of the items in the cart 
     for (let i = 0; i < cartData.length; i++) {
@@ -346,8 +362,64 @@ export function changeItemCount(currentEvent) {
 
     }
 
+}
 
 
+/**
+ * deletes item from cart when user clicks on specified item.
+ * @param {*} currentEvent This parameter will always be the $event object from the event-listener that called this function.
+ */
+ export function deleteCartItem(currentEvent) {
+
+    //Reatreaving cart items' local storage data
+    let cartData = JSON.parse(localStorage.getItem('cart items'));
+    
+    //retreaving input element's closest article element
+    let currentArticle = currentEvent.target.closest('article');
+
+    for (let i = 0; i < cartData.length; i++) {
+
+        //If the current article's dataset values match the id and color of any of the items in the cart, remove the item from local storage and DOM 
+        if (currentArticle.dataset.id == cartData[i].id && currentArticle.dataset.color == cartData[i].color) {
+            
+            let newCartData = [];
+            
+            for (let x = 0; x < cartData.length; x++) {
+
+                if (cartData[i] !== cartData[x]) {
+
+                    newCartData.push(cartData[x]);
+
+                }
+
+            }
+
+            //if all cart items have been deleted
+            if (newCartData.length == 0) {
+
+                localStorage.clear();
+
+                //Removing item from DOM
+                currentArticle.parentElement.removeChild(currentArticle);
+            
+            } else {
+
+                //Replacing cart items in local storage with new array
+                localStorage.setItem("cart items", JSON.stringify(newCartData));
+
+                //Removing item from DOM
+                currentArticle.parentElement.removeChild(currentArticle);
+
+            }
+
+            break;
+
+        }
+
+    }
 
 }
 
+
+export async function submitOrder(){
+}
