@@ -29,3 +29,6 @@ export const addressErrorMsg = document.getElementById("addressErrorMsg");
 export const cityErrorMsg = document.getElementById("cityErrorMsg");
 export const emailErrorMsg = document.getElementById("emailErrorMsg");
 
+//Confirmation page DOM elements
+export const orderId = document.getElementById('orderId');
+

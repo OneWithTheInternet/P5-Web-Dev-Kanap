@@ -8,6 +8,7 @@ import {
     totalQuantity,
     totalPrice,
     cartItems,
+    orderId,
     //form elements bellow this line
     form,
     firstName,
@@ -21,7 +22,6 @@ import {
     addressErrorMsg,
     cityErrorMsg,
     emailErrorMsg,
-
 } from "./variables.js";
 import { item } from './classes.js';
  
@@ -49,12 +49,14 @@ import { item } from './classes.js';
             request.onreadystatechange = () => {
                 if (request.readyState === 4){
 
-                    if (request.status === 200) {
+                    if (request.status === 200 || request.status === 201) {
 
                         resolve(JSON.parse(request.response));
+                        console.log('promise passed');
 
                     } else {
 
+                        console.log('promise rejected');
                         reject(JSON.parse(request.response));
 
                     }
@@ -297,9 +299,6 @@ export async function displayCart(){
 
         //Accessing local Storage
         let cartData = JSON.parse(localStorage.getItem('cart items'));
-
-        //Accessing DOM section where items are going to be displayed
-        let section = document.getElementById('cart__items');
         
         //Access each item in the cart one at a time
         for ( let i = 0; i < cartData.length; i++) {
@@ -349,7 +348,7 @@ export async function displayCart(){
             article__content__settingsContainer__deleteButtonContainer__button.innerHTML = "Delete";        
 
             //Appending DOM Elements
-            section.appendChild(article);
+            cartItems.appendChild(article);
             article.appendChild(article__imageContainer);
             article.appendChild(article__content);
             article__imageContainer.appendChild(article__imageContainer__image);
@@ -567,19 +566,38 @@ export async function submitOrder(currentEvent){
     };
 
     //submits it as a post request
-    requestPromise = await makeRequest ("POST", api + "/order", postObject);
-    requestResponse = requestPromise;
-    
+
+
+    let requestPromise = await makeRequest ("POST", api + "/order", postObject);
+    let requestResponse = requestPromise;
+
     //clear cart data from local storage and DOM
-    localStorage.getItem('cart items');
+    localStorage.clear();
     while (cartItems.hasChildNodes()) {
 
         cartItems.removeChild(cartItems.firstChild);
 
     }
-    
-    
-    //returns the response from the API
+
+    //storing API's response
+    sessionStorage.setItem('order confirmation', JSON.stringify(requestResponse));
+
+    //redirecting to confirmaiton page
+    location.href = './confirmation.html'
+
     return requestResponse;
+
+}
+
+
+/**
+ * Displays order ID in DOM
+ */
+export function displayOrderConfirmation() {
+
+    //retrieves order ID from setion storage and prints in the DOM
+    orderId.textContent = "";
+    let orderData = JSON.parse(sessionStorage.getItem('order confirmation'));
+    orderId.textContent = orderData.orderId; 
 
 }
