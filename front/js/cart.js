@@ -1,5 +1,5 @@
-import { orderButton, quantityInput } from './variables.js';
-import { displayCart, changeItemCount } from './functions.js';
+import { orderButton, form } from './variables.js';
+import { displayCart, submitOrder } from './functions.js';
 
 
 /**
@@ -10,3 +10,11 @@ window.addEventListener('load', () => {
     displayCart();
 
 });
+
+form[0].addEventListener('submit', ($event) => {
+
+    $event.preventDefault();
+    submitOrder($event);
+
+});
+

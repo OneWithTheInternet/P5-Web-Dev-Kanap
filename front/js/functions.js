@@ -1,6 +1,31 @@
-import { api, homeProductsSection, quantityInput, deleteButton } from "./variables.js";
+import { 
+
+    api,
+    homeProductsSection,
+    quantityInput,
+    deleteButton,
+    itemDesciptionContainers,
+    totalQuantity,
+    totalPrice,
+    cartItems,
+    //form elements bellow this line
+    form,
+    firstName,
+    lastName,
+    address,
+    city,
+    email,
+    orderButton,
+    firstNameErrorMsg,
+    lastNameErrorMsg, 
+    addressErrorMsg,
+    cityErrorMsg,
+    emailErrorMsg,
+
+} from "./variables.js";
 import { item } from './classes.js';
  
+
 
 /**
  * AJAX request that returns a promise with the JSON file.
@@ -10,27 +35,52 @@ import { item } from './classes.js';
  * @returns response data
  */
  export function makeRequest(verb, url, data) {
+
     if (verb === 'POST' && !data) {
+
         reject({error: 'no data to POST'});
-    } 
-    return new Promise((resolve, reject) => {
-        let request = new XMLHttpRequest();
-        request.open(verb, url);
-        request.onreadystatechange = () => {
-            if (request.readyState === 4){
-                if (request.status === 200) {
-                    resolve(JSON.parse(request.response));
-                }
-            } 
-        }
-        if (verb === 'POST') {
-            request.setRequestHeader('Content-Type', 'application/json');
-            request.send(JSON.stringify(data));
-        } else {
-            request.send();
-        }
-    });
+
+    } else {
+
+        return new Promise((resolve, reject) => {
+
+            let request = new XMLHttpRequest();
+            request.open(verb, url);
+            request.onreadystatechange = () => {
+                if (request.readyState === 4){
+
+                    if (request.status === 200) {
+
+                        resolve(JSON.parse(request.response));
+
+                    } else {
+
+                        reject(JSON.parse(request.response));
+
+                    }
+
+                } 
+
+            }
+
+            if (verb === 'POST') {
+
+                request.setRequestHeader('Content-Type', 'application/json');
+                request.send(JSON.stringify(data));
+
+            } else {
+
+                request.send();
+
+            }
+
+        });
+
+    }
+
 }
+
+
 
 /**
  * Retrieves a specified parameter from curret window's URL
@@ -40,6 +90,7 @@ import { item } from './classes.js';
     let queryString = new URLSearchParams(window.location.search);
     return queryString.get(parameterName);
 }
+
 
 
 /**
@@ -87,6 +138,7 @@ import { item } from './classes.js';
 }
 
 
+
 /**
  * Displays details of the product that the user clicked on on previews page
  * Details are displayed on product page
@@ -123,6 +175,7 @@ import { item } from './classes.js';
         colors.appendChild(option);
     }
 }
+
 
 
 /**
@@ -227,11 +280,14 @@ export function addToCart(){
 }
 
 
+
 /**
  * Displays all items added to the cart in the when cart page loads
  * Steps:
  * pulls item's ID, quantity and color from local storage
  * requests each item's remaining data from server
+ * Adds prices up 
+ * Detemines the total amount of items
  * prints data to the DOM
  */
 export async function displayCart(){
@@ -267,7 +323,7 @@ export async function displayCart(){
             let article__content__settingsContainer__deleteButtonContainer = document.createElement('div');
             let article__content__settingsContainer__deleteButtonContainer__button = document.createElement('p');
 
-            //Adding styles and attributes to newly created DOM elements
+            //Adding styles content and attributes to newly created DOM elements
             article.classList.add('cart__item');
             article.setAttribute("data-id", cartData[i].id);
             article.setAttribute("data-color", cartData[i].color);
@@ -278,7 +334,7 @@ export async function displayCart(){
             article__content__descriptionContainer.classList.add("cart__item__content__description"),
             article__content__descriptionContainer__title.innerText = requestResponse.name;
             article__content__descriptionContainer__color.innerText = cartData[i].color;
-            article__content__descriptionContainer__price.innerText = "$" + requestResponse.price;
+            article__content__descriptionContainer__price.innerHTML = "<span>$</span>" + "<span>" + requestResponse.price + "</span>";
             article__content__settingsContainer.classList.add("cart__item__content__settings");
             article__content__settingsContainer__quantityContainer.classList.add("cart__item__content__settings__quantity");
             article__content__settingsContainer__quantityContainer__text.innerHTML = "Qté : ";
@@ -332,9 +388,16 @@ export async function displayCart(){
         alert("You have not added anything to the cart yet");
 
     }
-    
 
+
+    //display the total money amount of the items in the cart
+    displayTotalPrice();
+
+    //display the total amount of items in the cart
+    displayCartCount();
+    
 }
+
 
 
 /**
@@ -363,6 +426,7 @@ export function changeItemCount(currentEvent) {
     }
 
 }
+
 
 
 /**
@@ -421,5 +485,101 @@ export function changeItemCount(currentEvent) {
 }
 
 
-export async function submitOrder(){
+
+/**
+ * Adds up cart item prices and displays this in the DOM
+ */
+function displayTotalPrice() {
+
+    //Clearing the total price field in DOM
+    totalPrice.textContent = ''; 
+
+    //Creating a price counter
+    let priceCounter = 0;
+
+    //adding all prices up
+    for (let i = 0; i < itemDesciptionContainers.length; i++) {
+
+        //retrieving item's price
+        let currentItemPrice = itemDesciptionContainers[i].children[2].children[1].textContent; 
+
+        //adding current item's price to price counter
+        priceCounter = priceCounter + parseInt(currentItemPrice);
+        
+    };
+
+    //appending result to DOM
+    totalPrice.textContent = priceCounter;
+
+}
+
+
+
+/**
+ * Determines amount of items in cart and displays resul in the DOM
+ */
+function displayCartCount() {
+
+    totalQuantity.textContent = "";
+
+    totalQuantity.textContent = itemDesciptionContainers.length + 1;
+
+}
+
+
+
+/**
+ * Submits an order to the server cart items information and user's contact information
+ * Clears the cart
+ * @param {*} currentEvent captures the current event object from the event listener that triggered this function 
+ * @returns a request response from API
+ */
+export async function submitOrder(currentEvent){
+
+    //Create an object with form's data
+    let contactObject = {
+
+        firstName: firstName.value,
+        lastName: lastName.value,
+        address: address.value,
+        city: city.value,
+        email: email.value
+
+    };
+    
+    //Retrieve cart data id into a new object
+    let cartData = JSON.parse(localStorage.getItem("cart items"));
+    
+    let productTable = [];
+
+    for (let i = 0; i < cartData.length; i++) {
+
+        productTable.push(cartData[i].id);
+
+    }
+
+    //creates a single object with both objects
+    let postObject = {
+
+        contact: contactObject,
+        products: productTable
+
+    };
+
+    //submits it as a post request
+    requestPromise = await makeRequest ("POST", api + "/order", postObject);
+    requestResponse = requestPromise;
+    
+    //clear cart data from local storage and DOM
+    localStorage.getItem('cart items');
+    while (cartItems.hasChildNodes()) {
+
+        cartItems.removeChild(cartItems.firstChild);
+
+    }
+    
+    
+    //returns the response from the API
+    return requestResponse;
+
 }
