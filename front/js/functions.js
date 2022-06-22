@@ -23,6 +23,7 @@ import {
     cityErrorMsg,
     emailErrorMsg,
 } from "./variables.js";
+
 import { item } from './classes.js';
  
 
@@ -424,6 +425,10 @@ export function changeItemCount(currentEvent) {
 
     }
 
+    //Updating total price and itemcount
+    displayTotalPrice();
+    displayCartCount();
+
 }
 
 
@@ -481,6 +486,10 @@ export function changeItemCount(currentEvent) {
 
     }
 
+    //Updating total price and itemcount
+    displayTotalPrice();
+    displayCartCount();
+
 }
 
 
@@ -501,6 +510,7 @@ function displayTotalPrice() {
 
         //retrieving item's price
         let currentItemPrice = itemDesciptionContainers[i].children[2].children[1].textContent; 
+        currentItemPrice = currentItemPrice * quantityInput[i].value;
 
         //adding current item's price to price counter
         priceCounter = priceCounter + parseInt(currentItemPrice);
@@ -521,7 +531,15 @@ function displayCartCount() {
 
     totalQuantity.textContent = "";
 
-    totalQuantity.textContent = itemDesciptionContainers.length + 1;
+    let itemQuantityCounter = 0; 
+
+    for (let i = 0; i < quantityInput.length; i++) {
+
+        itemQuantityCounter = itemQuantityCounter + parseInt(quantityInput[i].value);
+
+    }
+
+    totalQuantity.textContent = itemQuantityCounter;
 
 }
 
@@ -590,6 +608,7 @@ export async function submitOrder(currentEvent){
 }
 
 
+
 /**
  * Displays order ID in DOM
  */
@@ -597,7 +616,21 @@ export function displayOrderConfirmation() {
 
     //retrieves order ID from setion storage and prints in the DOM
     orderId.textContent = "";
-    let orderData = JSON.parse(sessionStorage.getItem('order confirmation'));
-    orderId.textContent = orderData.orderId; 
+
+    //display in the DOM
+    if (sessionStorage.getItem('order confirmation')) {
+
+        let orderData = JSON.parse(sessionStorage.getItem('order confirmation'));
+        orderId.textContent = orderData.orderId; 
+        
+        //clear session storage
+        sessionStorage.removeItem('order confirmation');
+
+    } else {
+
+        let orderData = JSON.parse(sessionStorage.getItem('order confirmation'));
+        orderId.textContent = "No order has been made yet."; 
+
+    }
 
 }
