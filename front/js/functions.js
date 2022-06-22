@@ -385,7 +385,9 @@ export async function displayCart(){
 
     } else {
 
-        alert("You have not added anything to the cart yet");
+        let errorMessage = document.createElement('h2');
+        errorMessage.textContent = "There is nothing in your cart yet."
+        cartItems.appendChild(errorMessage);
 
     }
 
