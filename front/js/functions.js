@@ -553,57 +553,65 @@ function displayCartCount() {
  */
 export async function submitOrder(currentEvent){
 
-    //Create an object with form's data
-    let contactObject = {
-
-        firstName: firstName.value,
-        lastName: lastName.value,
-        address: address.value,
-        city: city.value,
-        email: email.value
-
-    };
-    
     //Retrieve cart data id into a new object
     let cartData = JSON.parse(localStorage.getItem("cart items"));
-    
-    let productTable = [];
 
-    for (let i = 0; i < cartData.length; i++) {
+    if (cartData) {
 
-        productTable.push(cartData[i].id);
+        let productTable = [];
+
+        for (let i = 0; i < cartData.length; i++) {
+
+            productTable.push(cartData[i].id);
+
+        }
+        
+        //Create an object with form's data
+        let contactObject = {
+
+            firstName: firstName.value,
+            lastName: lastName.value,
+            address: address.value,
+            city: city.value,
+            email: email.value
+
+        };
+
+        //creates a single object with both form and local storage data.
+        let postObject = {
+
+            contact: contactObject,
+            products: productTable
+
+        };
+
+        //submits it as a post request
+
+
+        let requestPromise = await makeRequest ("POST", api + "/order", postObject);
+        let requestResponse = requestPromise;
+
+        //clear cart data from local storage and DOM
+        localStorage.clear();
+        while (cartItems.hasChildNodes()) {
+
+            cartItems.removeChild(cartItems.firstChild);
+
+        }
+
+        //storing API's response
+        sessionStorage.setItem('order confirmation', JSON.stringify(requestResponse));
+
+        //redirecting to confirmaiton page
+        location.href = './confirmation.html'
+
+        return requestResponse;
+
+    } else {
+
+        alert("Can't place order. There is nothing in your cart yet.");
 
     }
-
-    //creates a single object with both objects
-    let postObject = {
-
-        contact: contactObject,
-        products: productTable
-
-    };
-
-    //submits it as a post request
-
-
-    let requestPromise = await makeRequest ("POST", api + "/order", postObject);
-    let requestResponse = requestPromise;
-
-    //clear cart data from local storage and DOM
-    localStorage.clear();
-    while (cartItems.hasChildNodes()) {
-
-        cartItems.removeChild(cartItems.firstChild);
-
-    }
-
-    //storing API's response
-    sessionStorage.setItem('order confirmation', JSON.stringify(requestResponse));
-
-    //redirecting to confirmaiton page
-    location.href = './confirmation.html'
-
-    return requestResponse;
 
 }
 
